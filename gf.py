@@ -13,14 +13,11 @@ from datetime import datetime, date
 
 
 def isTradeDay():
-    tt = datetime.now().minute % 2
-    if tt == 0:
-        return True
     day_of_week = datetime.now().weekday()
     if day_of_week < 5:
         h = datetime.now().hour
         if h >= 9 or h < 15:
-            return False
+            return True
         else:
             return False
     else:
@@ -40,7 +37,7 @@ def work():
             break
         else:
             log.info('is not trade day sleep 10 minute')
-            time.sleep(10)
+            time.sleep(600)
 
     url = 'https://xueqiu.com/P/ZH914042'
     headers = ('User-Agent',
