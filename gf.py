@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import anyjson as json
-import click
-import dill
 import json
-import easytrader
 import time
 import urllib
 import urllib.request
+from datetime import datetime
+
+import anyjson as json
+
+import easytrader
 from easytrader.log import log
-from datetime import datetime, date
 
 
 def isTradeDay():
@@ -29,8 +29,10 @@ def main():
 
 
 def work():
+    balance = 100000
     # url = 'https://xueqiu.com/P/ZH902949'
     # terry test
+    url = 'https://xueqiu.com/P/ZH914042'
     while True:
         if isTradeDay():
             log.info('is trade day ready go')
@@ -38,11 +40,8 @@ def work():
         else:
             log.info('is not trade day sleep 10 minute')
             time.sleep(600)
-
-    url = 'https://xueqiu.com/P/ZH914042'
     headers = ('User-Agent',
                'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36')
-    balance = 100000
     user = easytrader.use('gf')
     user.prepare('gf.json')
     while True:
@@ -56,10 +55,10 @@ def work():
                     cube = data.lstrip('SNB.cubeInfo = ')
                     encodedjson = json.loads(cube)
                     rebalancing = encodedjson['sell_rebalancing']
-                    id = rebalancing['id']
+                    _id = rebalancing['id']
                     with open('D:\gf\db.txt', 'r') as f:
                         oldId = (f.read()).format()
-                        newId = str(id)
+                        newId = str(_id)
                         if oldId != newId:
                             histories = rebalancing['rebalancing_histories']
                             for entity in histories:
@@ -110,6 +109,7 @@ def work():
         if not isTradeDay():
             log.info('today work end ')
             work()
+
 
 if __name__ == '__main__':
     main()
