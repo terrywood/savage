@@ -1,4 +1,5 @@
 # coding: utf-8
+import datetime
 import logging
 import os
 import re
@@ -29,6 +30,18 @@ class TradeError(Exception):
     def __init__(self, message=None):
         super(TradeError, self).__init__()
         self.message = message
+
+
+def is_trade_date():
+    day_of_week = datetime.now().weekday()
+    if day_of_week < 5:
+        h = datetime.now().hour
+        if 9 <= h < 15:
+            return True
+        else:
+            return False
+    else:
+        return False
 
 
 class WebTrader(object):
@@ -66,6 +79,7 @@ class WebTrader(object):
         """
         for _ in range(limit):
             if self.login():
+                self.heart_active = True
                 break
         else:
             raise NotLoginError('登录失败次数过多, 请检查密码是否正确 / 券商服务器是否处于维护中 / 网络连接是否正常')
@@ -86,19 +100,23 @@ class WebTrader(object):
         while True:
             if self.heart_active:
                 try:
-
-                    log_level = log.level
-                    log.setLevel(logging.ERROR)
+                    # log_level = log.level
+                    # log.setLevel(logging.ERROR)
                     response = self.heartbeat()
                     log.info(response)
                     self.heartbeat_response = response
                     self.check_account_live(response)
-                    log.setLevel(log_level)
+                    # log.setLevel(log_level)
                 except:
+                    log.info("heartbeat exception .... try login")
                     self.autologin()
-                time.sleep(30)
+                time.sleep(60)
             else:
+                log.info("client may be disconnection .... try login")
                 time.sleep(1)
+                break
+        if is_trade_date():
+            self.autologin()
 
     def heartbeat(self):
         # return self.balance

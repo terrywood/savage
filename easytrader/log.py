@@ -7,7 +7,7 @@ log.propagate = False
 
 fmt = logging.Formatter('%(asctime)s [%(levelname)s] %(filename)s %(lineno)s: %(message)s')
 ch = logging.StreamHandler()
-fh = logging.FileHandler('snow.log')
+fh = logging.FileHandler('savage.log')
 fh.setFormatter(fmt)
 ch.setFormatter(fmt)
 ch.setLevel(logging.INFO)

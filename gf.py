@@ -16,7 +16,7 @@ def isTradeDay():
     day_of_week = datetime.now().weekday()
     if day_of_week < 5:
         h = datetime.now().hour
-        if h >= 9 or h < 15:
+        if 9 <= h < 15:
             return True
         else:
             return False
@@ -57,9 +57,9 @@ def work():
                     rebalancing = encodedjson['sell_rebalancing']
                     _id = rebalancing['id']
                     with open('D:\gf\db.txt', 'r') as f:
-                        oldId = (f.read()).format()
-                        newId = str(_id)
-                        if oldId != newId:
+                        old_id = (f.read()).format()
+                        new_id = str(_id)
+                        if old_id != new_id:
                             histories = rebalancing['rebalancing_histories']
                             for entity in histories:
                                 target_weight = entity['target_weight']
@@ -74,7 +74,6 @@ def work():
                                 if prev_weight is None:
                                     prev_weight = 0
                                 if weight > prev_weight:
-                                    log.info('s 3')
                                     amount = ((((balance * (weight - prev_weight)) / 100) / price) // 100) * 100
                                     # user.buy(stock_symbol, price=price, amount=amount)
                                     message = 'buy ' + str(amount) + ' code ' + stock_symbol
@@ -92,20 +91,20 @@ def work():
                                             message = 'sell clear ' + str(amount) + ' code ' + stock_symbol
                                             log.info(message)
                                 else:
-                                    log.info('s 5')
                                     amount = ((((balance * (prev_weight - weight)) / 100) / price) // 100) * 100
                                     # user.sell(stock_symbol, price=price, amount=amount)
                                     message = 'sell ' + str(amount) + ' code ' + stock_symbol
                                     log.info(message)
                             with open('D:\gf\db.txt', 'w') as f1:
-                                f1.write(newId)
+                                f1.write(new_id)
                         else:
                             # print('anything no change')
                             pass
                     break
         finally:
             response.close()
-        # time.sleep(5)
+        time.sleep(10)
+        # log.info(user.balance)
         if not isTradeDay():
             log.info('today work end ')
             work()

@@ -13,6 +13,7 @@ import six
 from . import helpers
 from .log import log
 from .webtrader import WebTrader
+from datetime import datetime
 
 VERIFY_CODE_POS = 0
 TRADE_MARKET = 1
@@ -116,7 +117,9 @@ class GFTrader(WebTrader):
         return return_data
 
     def check_account_live(self, response):
-        if hasattr(response, 'data') and response.get('error_no') == '-1':
+        if response is None:
+            self.heart_active = False
+        elif response.get('error_no') != 0:
             self.heart_active = False
 
     def __set_trade_need_info(self):
