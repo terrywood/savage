@@ -10,18 +10,7 @@ import anyjson as json
 
 import easytrader
 from easytrader.log import log
-
-
-def isTradeDay():
-    day_of_week = datetime.now().weekday()
-    if day_of_week < 5:
-        h = datetime.now().hour
-        if 9 <= h < 15:
-            return True
-        else:
-            return False
-    else:
-        return False
+import easytrader.util
 
 
 def main():
@@ -33,8 +22,9 @@ def work():
     # url = 'https://xueqiu.com/P/ZH902949'
     # terry test
     url = 'https://xueqiu.com/P/ZH914042'
+
     while True:
-        if isTradeDay():
+        if easytrader.util.is_trade_date():
             log.info('is trade day ready go')
             break
         else:
@@ -103,9 +93,9 @@ def work():
                     break
         finally:
             response.close()
-        time.sleep(10)
+        # time.sleep(10)
         # log.info(user.balance)
-        if not isTradeDay():
+        if not easytrader.util.is_trade_date():
             user.exit()
             log.info('today work end ')
             work()

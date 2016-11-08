@@ -8,6 +8,7 @@ from threading import Thread
 
 import six
 
+from easytrader import util
 from . import helpers
 from .log import log
 
@@ -30,18 +31,6 @@ class TradeError(Exception):
     def __init__(self, message=None):
         super(TradeError, self).__init__()
         self.message = message
-
-
-def is_trade_date():
-    day_of_week = datetime.now().weekday()
-    if day_of_week < 5:
-        h = datetime.now().hour
-        if 9 <= h < 15:
-            return True
-        else:
-            return False
-    else:
-        return False
 
 
 class WebTrader(object):
@@ -115,7 +104,7 @@ class WebTrader(object):
                 log.info("client may be disconnection .... try login")
                 time.sleep(1)
                 break
-        if is_trade_date():
+        if util.is_trade_date():
             self.autologin()
 
     def heartbeat(self):
@@ -127,6 +116,7 @@ class WebTrader(object):
 
     def exit(self):
         """结束保持 token 在线的进程"""
+        log.info("exit system from web trader")
         self.heart_active = False
 
     def __read_config(self):

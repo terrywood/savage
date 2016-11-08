@@ -118,8 +118,10 @@ class GFTrader(WebTrader):
 
     def check_account_live(self, response):
         if response is None:
+            log.info("heartbeat response is none")
             self.heart_active = False
         elif response.get('error_no') != 0:
+            log.info("heartbeat response is error")
             self.heart_active = False
 
     def __set_trade_need_info(self):
@@ -540,8 +542,9 @@ class GFTrader(WebTrader):
         退出系统
         :return:
         '''
+        log.info("exit system from gf")
         params = self.config['exit'].copy()
-        log.debug(self.do(params))
+        log.info(self.do(params))
         self.heart_active = False
 
     def get_entrust(self, action_in=0):
