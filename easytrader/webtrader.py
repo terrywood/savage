@@ -103,14 +103,14 @@ class WebTrader(object):
                     # log_level = log.level
                     # log.setLevel(logging.ERROR)
                     response = self.heartbeat()
-                    log.info(response)
+                    # log.info(response)
                     self.heartbeat_response = response
                     self.check_account_live(response)
                     # log.setLevel(log_level)
                 except:
                     log.info("heartbeat exception .... try login")
                     self.autologin()
-                time.sleep(60)
+                time.sleep(30)
             else:
                 log.info("client may be disconnection .... try login")
                 time.sleep(1)

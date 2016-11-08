@@ -106,6 +106,7 @@ def work():
         time.sleep(10)
         # log.info(user.balance)
         if not isTradeDay():
+            user.exit()
             log.info('today work end ')
             work()
 
