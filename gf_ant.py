@@ -19,18 +19,21 @@ group = "Ant_003"
 def parse(content):
     index1 = content.find("Hold1") - 2
     index2 = content.find("Total_profit_rate") - 2
-    working = json.loads(content[0:index1])
-    position = json.loads(content[index1:index2])
-    buy_list = []
-    for code in working['buy']:
-        for tick in position:
-            if position[tick]['code'] == code:
-                entity = position[tick]
-                buy_list.append(entity)
-                break
+    if index1 > 0:
+        working = json.loads(content[0:index1])
+        position = json.loads(content[index1:index2])
+        buy_list = []
+        for code in working['buy']:
+            for tick in position:
+                if position[tick]['code'] == code:
+                    entity = position[tick]
+                    buy_list.append(entity)
+                    break
 
-    working['buy'] = buy_list
-    return working
+        working['buy'] = buy_list
+        return working
+    else:
+        return json.loads(content[0:index2])
 
 
 def mail():
@@ -105,6 +108,7 @@ def main():
 
     while True:
         data = mail()
+        # data = parse('{"date": "2016-11-09", "sell": ["000210.xhae"], "buy": []}{"Total_profit_rate": "63%"}')
         if data is None:
             time.sleep(30)
         else:
@@ -120,13 +124,13 @@ def main():
         message = 'sell clear  code ' + sell_code
         log.info(message)
         for position in positions['data']:
-            stock_code = str(position['stock_code'])
+            stock_code = position['stock_code']
             if stock_code == sell_code:
                 amount = position['enable_amount']
                 last_price = position['last_price']
                 # result = user.sell(sell_code, price=last_price, amount=amount)
                 # log.info(result)
-                message = 'sell clear  code ' + sell_code + ' amount ' + amount + ' last price' + last_price
+                message = 'sell clear code=' + sell_code + ' amount=' + amount + ' last price=' + last_price
                 log.info(message)
                 break
 
@@ -137,8 +141,9 @@ def main():
         cost = buy_entity['Cost']
         # result = user.buy(buy_code, price=cost, volume=volume)
         # log.info(result)
-        message = 'buy balance ' + str(volume) + ' code ' + buy_code + ' cost' + str(cost)
+        message = 'buy  code=' + buy_code + 'balance=' + str(volume) + ' last price=' + str(cost)
         log.info(message)
+
 
 if __name__ == '__main__':
     main()
