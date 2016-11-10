@@ -1,38 +1,91 @@
-#-*- encoding: gb2312 -*-
-import os, sys, string
-import poplib
+# -*- coding: utf-8 -*-
+import datetime
+import email
+import email.header
+import imaplib
+import json
 
-# pop3服务器地址
-host = "pop3.163.com"
-# 用户名
+import easytrader.util
+from easytrader.log import log
+
+host = "imap.163.com"
 username = "qq3532619@163.com"
-# 密码
 password = "abcabc123123"
-# 创建一个pop3对象，这个时候实际上已经连接上服务器了
-pp = poplib.POP3(host)
-# 设置调试模式，可以看到与服务器的交互信息
-pp.set_debuglevel(1)
-# 向服务器发送用户名
-pp.user(username)
-# 向服务器发送密码
-pp.pass_(password)
-# 获取服务器上信件信息，返回是一个列表，第一项是一共有多上封邮件，第二项是共有多少字节
-ret = pp.stat()
-print (ret)
-# 需要取出所有信件的头部，信件id是从1开始的。
-for i in range(1, ret[0]+1):
-    # 取出信件头部。注意：top指定的行数是以信件头为基数的，也就是说当取0行，
-    # 其实是返回头部信息，取1行其实是返回头部信息之外再多1行。
-    mlist = pp.top(i, 0)
-    print ('line: ', len(mlist[1]))
-# 列出服务器上邮件信息，这个会对每一封邮件都输出id和大小。不象stat输出的是总的统计信息
-ret = pp.list()
-print (ret)
-# 取第一封邮件完整信息，在返回值里，是按行存储在down[1]的列表里的。down[0]是返回的状态信息
-down = pp.retr(1)
-print ('lines:', len(down))
-# 输出邮件
-for line in down[1]:
-    print (line)
-# 退出
-pp.quit()
+
+
+def parse(content):
+    index1 = content.find("Hold1") - 2
+    index2 = content.find("Total_profit_rate") - 2
+    working = json.loads(content[0:index1])
+    position = json.loads(content[index1:index2])
+    log.info(working)
+    log.info(position)
+    buy_list = []
+    for code in working['buy']:
+        for tick in position:
+            if position[tick]['code'] == code:
+                entity = position[tick]
+                buy_list.append(entity)
+                break
+
+    working['buy'] = buy_list
+    return working
+
+
+def mail():
+    content = None
+    conn = imaplib.IMAP4(host)
+    conn.login(username, password)
+    conn.select()
+
+    # date = (datetime.date.today() - datetime.timedelta(1)).strftime("%d-%b-%Y")
+    # result, data = mail.uid('search', None, '(SENTSINCE {date})'.format(date=date))
+    typ, data = conn.search(None, 'ALL')
+    if typ != 'OK':
+        log.warn("No messages found!")
+        return
+
+    # typ, data = conn.search(None, '(FROM "ants2016")')
+    for num in data[0].split():
+        # typ, data = conn.fetch(num, '(RFC822)')
+        typ, data = conn.fetch(num, '(RFC822)')
+        if typ != 'OK':
+            log.warn("ERROR getting message", num)
+            return
+        msg = email.message_from_bytes(data[0][1])
+        # log.info(message_id)
+        fr = email.utils.parseaddr(msg['From'])[1]
+        if fr != 'ants2016@vip.163.com':
+            continue
+        hdr = email.header.make_header(email.header.decode_header(msg['Subject']))
+        subject = str(hdr)
+        if not subject.startswith("Ant_001"):
+            continue
+        log.info('Message %s: %s' % (num, subject))
+        date_tuple = email.utils.parsedate_tz(msg['Date'])
+        if date_tuple:
+            local_date = datetime.datetime.fromtimestamp(email.utils.mktime_tz(date_tuple))
+            if not easytrader.util.is_today(local_date):
+                continue
+        else:
+            log.warn('can not get date tuple')
+            continue
+        message_id = msg.get('Message-ID')
+        with open('D:\gf\mail.txt', 'w') as f1:
+            old_id = (f1.read()).format()
+            if old_id == message_id :
+                log.info('mail is handled')
+                continue
+            else:
+                f1.write(message_id)
+
+        for part in msg.walk():
+            content = part.get_payload(decode=True).decode()
+            content = content[0:content.find("\n")]
+    conn.close()
+    conn.logout()
+    return parse(content)
+
+if __name__ == '__main__':
+    parse(
+        '{"date": "2016-11-09", "sell": ["002627.XSHE"], "buy": ["002205.XSHE"]}{"Hold1": {"code": "002205.XSHE", "total_amount": 1300, "Weight": 23.666299865955008, "Cost": 29.89}, "Hold2": {"code": "600213.XSHG", "total_amount": 2600, "Weight": 24.562210045135213, "Cost": 14.81}, "Hold3": {"code": "600781.XSHG", "total_amount": 2100, "Weight": 24.206041532785829, "Cost": 18.24}, "Hold4": {"code": "000713.XSHE", "total_amount": 3300, "Weight": 23.909641024221109, "Cost": 11.22}}{"Total_profit_rate": "63%"}')

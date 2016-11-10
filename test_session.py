@@ -12,12 +12,10 @@ from easytrader.log import log
 
 
 def main():
-
     user = easytrader.use('gf')
     user.prepare('gf.json')
-    while True:
-        log.info(user.position)
-        time.sleep(1)
+    print(user.get_position())
+    # print(user.sell('512880', price=0, amount=100, entrust_prop=1))
 
 
 if __name__ == '__main__':

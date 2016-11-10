@@ -74,7 +74,6 @@ def work():
                                     positions = heartbeat['data']
                                     for position in positions:
                                         stock_code = position['stock_code']
-                                        log.info('s 4' + stock_code + '<->' + stock_symbol)
                                         if stock_code == stock_symbol:
                                             amount = position['enable_amount']
                                             # user.sell(stock_symbol, price=price, amount=enable_amount)
