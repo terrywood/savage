@@ -12,7 +12,7 @@ from easytrader.log import log
 balance = 50000
 host = "imap.163.com"
 username = "qq3532619@163.com"
-password = "abcabc123123"
+password = "*********"
 group = "Ant_001"
 
 
