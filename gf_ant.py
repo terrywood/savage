@@ -9,11 +9,11 @@ from datetime import datetime
 import easytrader.util
 from easytrader.log import log
 
-balance = 100000
+balance = 50000
 host = "imap.163.com"
 username = "qq3532619@163.com"
 password = "abcabc123123"
-group = "Ant_003"
+group = "Ant_001"
 
 
 def parse(content):
@@ -54,7 +54,10 @@ def mail():
             log.warn("ERROR getting message", num)
             return
         msg = email.message_from_bytes(data[0][1])
-        # log.info(message_id)
+        message_id = msg.get('Message-ID')
+        if 'vip.163.com' not in message_id:
+            continue
+        log.info(message_id)
         fr = email.utils.parseaddr(msg['From'])[1]
         if fr != 'ants2016@vip.163.com':
             continue
@@ -70,12 +73,12 @@ def mail():
         else:
             log.warn('can not get date tuple')
             continue
-        message_id = msg.get('Message-ID')
         with open('D:\gf\mail.txt', 'r') as f1:
             old_id = (f1.read()).format()
             if old_id == message_id:
                 log.info('mail is handled')
-                continue
+                content = '{"date": "", "sell": [], "buy": []}{"Total_profit_rate": "0%"}'
+                break
             else:
                 with open('D:\gf\mail.txt', 'w') as f2:
                     f2.write(message_id)
@@ -85,26 +88,32 @@ def mail():
             content = content[0:content.find("\n")]
     conn.close()
     conn.logout()
+
     if content is None:
         return None
     else:
         return parse(content)
 
 
-def main():
-    data = None
+def balk():
     while True:
         if easytrader.util.is_trade_date():
-            log.info('is trade day ready go')
             if datetime.now().hour > 9:
                 break
             elif datetime.now().minute > 26 and datetime.now().hour == 9:
+                log.info('is trade day ready')
                 break
             else:
                 time.sleep(30)
         else:
             log.info('is not trade day sleep 10 minute')
             time.sleep(600)
+
+
+def main():
+    data = None
+    balk()
+    log.info("go go go")
 
     while True:
         data = mail()
@@ -117,8 +126,8 @@ def main():
     user = easytrader.use('gf')
     user.prepare('gf.json')
     positions = user.get_position()
-    # log.info(positions)
-    # log.info(data)
+    log.info(positions)
+    log.info(data)
     for sell_code in data['sell']:
         sell_code = sell_code[0:6].format()
         message = 'sell clear  code ' + sell_code
@@ -130,7 +139,7 @@ def main():
                 last_price = position['last_price']
                 # result = user.sell(sell_code, price=last_price, amount=amount)
                 # log.info(result)
-                message = 'sell clear code=' + sell_code + ' amount=' + amount + ' last price=' + last_price
+                message = 'sell clear code = ' + sell_code + ' amount=' + amount + ' last price=' + last_price
                 log.info(message)
                 break
 
@@ -141,8 +150,9 @@ def main():
         cost = buy_entity['Cost']
         # result = user.buy(buy_code, price=cost, volume=volume)
         # log.info(result)
-        message = 'buy  code=' + buy_code + 'balance=' + str(volume) + ' last price=' + str(cost)
+        message = 'buy  code=' + buy_code + ' balance=' + str(volume) + ' last price=' + str(cost)
         log.info(message)
+    log.info("ant working ending")
 
 
 if __name__ == '__main__':

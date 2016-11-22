@@ -62,7 +62,7 @@ class WebTrader(object):
         self.read_config(need_data)
         self.autologin()
 
-    def autologin(self, limit=10):
+    def autologin(self, limit=4):
         """实现自动登录
         :param limit: 登录次数限制
         """
