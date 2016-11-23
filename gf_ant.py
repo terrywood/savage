@@ -12,7 +12,7 @@ from easytrader.log import log
 balance = 50000
 host = "imap.163.com"
 username = "qq3532619@163.com"
-password = "*********"
+password = "abcabc123123"
 group = "Ant_001"
 
 
@@ -55,8 +55,7 @@ def mail():
             return
         msg = email.message_from_bytes(data[0][1])
         message_id = msg.get('Message-ID')
-        if 'vip.163.com' not in message_id:
-            continue
+
         log.info(message_id)
         fr = email.utils.parseaddr(msg['From'])[1]
         if fr != 'ants2016@vip.163.com':
@@ -104,7 +103,7 @@ def balk():
                 log.info('is trade day ready')
                 break
             else:
-                time.sleep(30)
+                time.sleep(20)
         else:
             log.info('is not trade day sleep 10 minute')
             time.sleep(600)
@@ -137,8 +136,8 @@ def main():
             if stock_code == sell_code:
                 amount = position['enable_amount']
                 last_price = position['last_price']
-                # result = user.sell(sell_code, price=last_price, amount=amount)
-                # log.info(result)
+                result = user.sell(sell_code, price=last_price, amount=amount)
+                log.info(result)
                 message = 'sell clear code = ' + sell_code + ' amount=' + amount + ' last price=' + last_price
                 log.info(message)
                 break
@@ -148,8 +147,8 @@ def main():
         buy_code = buy_code[0:6].format()
         volume = buy_entity['Weight'] * balance / 100
         cost = buy_entity['Cost']
-        # result = user.buy(buy_code, price=cost, volume=volume)
-        # log.info(result)
+        result = user.buy(buy_code, price=cost, volume=volume)
+        log.info(result)
         message = 'buy  code=' + buy_code + ' balance=' + str(volume) + ' last price=' + str(cost)
         log.info(message)
     log.info("ant working ending")
