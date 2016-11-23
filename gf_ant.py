@@ -6,14 +6,12 @@ import json
 import time
 from datetime import datetime
 
+from easytrader import helpers
+
 import easytrader.util
 from easytrader.log import log
 
-balance = 50000
-host = "imap.163.com"
-username = "qq3532619@163.com"
-password = "abcabc123123"
-group = "Ant_001"
+config = {}
 
 
 def parse(content):
@@ -38,8 +36,8 @@ def parse(content):
 
 def mail():
     content = None
-    conn = imaplib.IMAP4(host)
-    conn.login(username, password)
+    conn = imaplib.IMAP4(config['mail_host'])
+    conn.login(config['mail_user'], config['mail_pass'])
     conn.select()
     typ, data = conn.search(None, 'ALL')
     if typ != 'OK':
@@ -62,7 +60,7 @@ def mail():
             continue
         hdr = email.header.make_header(email.header.decode_header(msg['Subject']))
         subject = str(hdr)
-        if not subject.startswith(group):
+        if not subject.startswith(config['group']):
             continue
         date_tuple = email.utils.parsedate_tz(msg['Date'])
         if date_tuple:
@@ -72,14 +70,14 @@ def mail():
         else:
             log.warn('can not get date tuple')
             continue
-        with open('D:\gf\mail.txt', 'r') as f1:
+        with open(config['mail_db'], 'r') as f1:
             old_id = (f1.read()).format()
             if old_id == message_id:
                 log.info('mail is handled')
                 content = '{"date": "", "sell": [], "buy": []}{"Total_profit_rate": "0%"}'
                 break
             else:
-                with open('D:\gf\mail.txt', 'w') as f2:
+                with open(config['mail_db'], 'w') as f2:
                     f2.write(message_id)
 
         for part in msg.walk():
@@ -109,11 +107,21 @@ def balk():
             time.sleep(600)
 
 
+def read_config(path):
+    try:
+        global config
+        config = helpers.file2dict(path)
+    except ValueError:
+        log.error('配置文件格式有误，请勿使用记事本编辑，推荐使用 notepad++ 或者 sublime text')
+
+
 def main():
     data = None
     balk()
-    log.info("go go go")
-
+    read_config("savage.json")
+    log.info(config)
+    user = easytrader.use('gf')
+    user.prepare('gf.json')
     while True:
         data = mail()
         # data = parse('{"date": "2016-11-09", "sell": ["000210.xhae"], "buy": []}{"Total_profit_rate": "63%"}')
@@ -121,9 +129,6 @@ def main():
             time.sleep(30)
         else:
             break
-
-    user = easytrader.use('gf')
-    user.prepare('gf.json')
     positions = user.get_position()
     log.info(positions)
     log.info(data)
@@ -145,10 +150,10 @@ def main():
     for buy_entity in data['buy']:
         buy_code = buy_entity['code']
         buy_code = buy_code[0:6].format()
-        volume = buy_entity['Weight'] * balance / 100
+        volume = buy_entity['Weight'] * config['balance'] / 100
         cost = buy_entity['Cost']
-        result = user.buy(buy_code, price=cost, volume=volume)
-        log.info(result)
+        # result = user.buy(buy_code, price=cost, volume=volume)
+        # log.info(result)
         message = 'buy  code=' + buy_code + ' balance=' + str(volume) + ' last price=' + str(cost)
         log.info(message)
     log.info("ant working ending")
